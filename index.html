@@ -34,4 +34,49 @@
 <body>
   <div class="container">
     <h2>Calculadora de pagos en USD</h2>
-    <label for="usdAmount
+    <label for="usdAmount">Monto en USD:</label>
+    <input type="number" id="usdAmount" placeholder="Ej: 20" step="0.01">
+    <button onclick="calcularTotal()">Calcular</button>
+    <div class="result" id="resultado"></div>
+  </div>
+
+  <script>
+    async function obtenerDolarOficial() {
+      try {
+        const res = await fetch('https://api.bluelytics.com.ar/v2/latest');
+        const data = await res.json();
+        return data.oficial.value_sell;
+      } catch (error) {
+        alert('No se pudo obtener el dólar oficial. Usando valor aproximado.');
+        return 1130; // valor estimado manual
+      }
+    }
+
+    async function calcularTotal() {
+      const usd = parseFloat(document.getElementById("usdAmount").value);
+      if (isNaN(usd) || usd <= 0) {
+        alert("Por favor ingresá un monto válido.");
+        return;
+      }
+
+      const dolar = await obtenerDolarOficial();
+
+      const base = usd * dolar;
+      const iva = base * 0.21;
+      const percepcion = base * 0.30;
+      const iibb = base * 0.02;
+      const total = base + iva + percepcion + iibb;
+
+      document.getElementById("resultado").innerHTML = `
+        Dólar oficial: $${dolar.toFixed(2)}<br>
+        Monto base: $${base.toFixed(2)}<br>
+        IVA (21%): $${iva.toFixed(2)}<br>
+        Percepción (30%): $${percepcion.toFixed(2)}<br>
+        Ingresos Brutos (2%): $${iibb.toFixed(2)}<br>
+        <hr>
+        <strong>Total a pagar: $${total.toFixed(2)}</strong>
+      `;
+    }
+  </script>
+</body>
+</html>
